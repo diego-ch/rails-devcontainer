@@ -1,0 +1,34 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    command: sleep infinity
+    volumes:
+      - ../..:/workspaces:cached
+    network_mode: service:postgres
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16.3-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U postgres -h 127.0.0.1
+      interval: 5s
+
+  redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    network_mode: service:postgres
+    volumes:
+      - redis-data:/data
+
+volumes:
+  postgres-data:
+  redis-data:
